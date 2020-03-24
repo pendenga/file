@@ -1,0 +1,2 @@
+This file is a test file for the prop function.
+It has two lines, and is 83 bytes.
