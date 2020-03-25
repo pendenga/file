@@ -24,7 +24,7 @@ try {
     // generate new files
     $gen = new Generate($logger);
     $gen->setOption('file_base_dir', Ini::get('TMP_DIRECTORY'))
-        ->setManifest(new ManifestWriter($manifest, $logger))
+        ->setManifest(new ManifestWriter($manifest))
         ->files();
 
     // check the manifest

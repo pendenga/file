@@ -35,6 +35,19 @@ class DirectoryTest extends TestCase
         $this->tmp_dir = Ini::get('TMP_DIRECTORY');
         $this->dir = new Directory(new Scan($logger), $logger);
         $this->dir->deleteFiles($this->tmp_dir);
+        $this->dir->deleteSubDirs($this->tmp_dir);
+    }
+
+    public function testDeleteDirs()
+    {
+        // create a directory, check
+        $dir_path = $this->tmp_dir . '/subdir';
+        mkdir($dir_path);
+        $this->assertEquals([$dir_path], $this->dir->directories($this->tmp_dir));
+
+        // delete, check again
+        $this->assertEquals(1, $this->dir->deleteSubDirs($this->tmp_dir));
+        $this->assertEquals([], $this->dir->directories($this->tmp_dir));
     }
 
     public function testDeleteFiles()
@@ -47,6 +60,14 @@ class DirectoryTest extends TestCase
         // delete, check again
         $this->assertEquals(1, $this->dir->deleteFiles($this->tmp_dir));
         $this->assertEquals([], $this->dir->files($this->tmp_dir));
+    }
+
+    public function testDirectories()
+    {
+        // create a directory, check
+        $dir_path = $this->tmp_dir . '/subdir';
+        mkdir($dir_path);
+        $this->assertEquals([$dir_path], $this->dir->directories($this->tmp_dir));
     }
 
     public function testFiles()

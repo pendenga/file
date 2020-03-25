@@ -80,4 +80,12 @@ class Directory {
         }
         return $dir_count;
     }
+
+    /**
+     * @param $dir_path
+     * @return array
+     */
+    public function directories($dir_path) {
+        return $this->scan->directories($dir_path);
+    }
 }
