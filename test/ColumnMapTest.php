@@ -1,24 +1,40 @@
 <?php
 
-namespace Pendenga\File;
+namespace Pendenga\File\Test;
 
+use Pendenga\File\ColumnMap;
+use Pendenga\File\FileException;
 use Pendenga\Log\EchoLogger;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
+/**
+ * Class ColumnMapTest
+ * @package Pendenga\File
+ */
 class ColumnMapTest extends TestCase
 {
+    /**
+     * @var ColumnMap
+     */
+    protected $map;
+
+    public function setup(): void {
+        $logger = new NullLogger(); // change to EchoLogger for debugging
+        $this->map = new ColumnMap($logger);
+    }
+
     /**
      * @throws FileException
      */
     public function testParseHeader()
     {
-        $map = new ColMap();
-        $map->parseHeader(['file', 'size', 'rows']);
-        $this->assertEquals(0, $map->index(ColMap::NAME));
-        $this->assertEquals(1, $map->index(ColMap::SIZE));
-        $this->assertEquals(2, $map->index(ColMap::ROWS));
-
-        $this->assertEquals(['col_name','col_size','col_rows'], $map->columnKeys());
+        $this->map->parseHeader(['file', 'size', 'rows', 'checksum']);
+        $this->assertEquals(0, $this->map->index(ColumnMap::NAME));
+        $this->assertEquals(1, $this->map->index(ColumnMap::SIZE));
+        $this->assertEquals(2, $this->map->index(ColumnMap::ROWS));
+        $this->assertEquals(3, $this->map->index(ColumnMap::CHECK));
+        $this->assertEquals(['col_name','col_size','col_rows','col_check'], $this->map->columnKeys());
     }
 
     /**
@@ -26,17 +42,16 @@ class ColumnMapTest extends TestCase
      */
     public function testParseHeader2()
     {
-        $map = new ColMap(new EchoLogger());
-        $map->parseHeader(['count', 'filename', 'nothing', 'bytes']);
-        $this->assertEquals(0, $map->index(ColMap::ROWS));
-        $this->assertEquals(1, $map->index(ColMap::NAME));
-        $this->assertEquals(3, $map->index(ColMap::SIZE));
+        $this->map->parseHeader(['count', 'filename', 'nothing', 'bytes']);
+        $this->assertEquals(0, $this->map->index(ColumnMap::ROWS));
+        $this->assertEquals(1, $this->map->index(ColumnMap::NAME));
+        $this->assertEquals(3, $this->map->index(ColumnMap::SIZE));
 
         // isHeader must match on all the columns, even the ignored ones
-        $this->assertTrue($map->isHeader(['count', 'filename', 'nothing', 'bytes']));
-        $this->assertTrue($map->isHeader([0 => 'count', 1 => 'filename', 2 => 'nothing', 3 => 'bytes']));
-        $this->assertFalse($map->isHeader(['count', 'filename', 'nada', 'bytes']));
-        $this->assertFalse($map->isHeader(['rows', 'file', 'nada', 'bytes']));
+        $this->assertTrue($this->map->isHeader(['count', 'filename', 'nothing', 'bytes']));
+        $this->assertTrue($this->map->isHeader([0 => 'count', 1 => 'filename', 2 => 'nothing', 3 => 'bytes']));
+        $this->assertFalse($this->map->isHeader(['count', 'filename', 'nada', 'bytes']));
+        $this->assertFalse($this->map->isHeader(['rows', 'file', 'nada', 'bytes']));
     }
 
     /**
@@ -49,10 +64,9 @@ class ColumnMapTest extends TestCase
             ['lary', 'kurly', 'mow'],
         ];
 
-        $map = new ColMap(new EchoLogger());
-        $map->parseHeader($data[0]);
-        $this->assertEquals(1, $map->index(ColMap::NAME));
-        $this->assertEquals('kurly', $map->value(ColMap::NAME, $data[1]));
-        $this->assertEquals('kurly', $data[1][$map->index(ColMap::NAME)]);
+        $this->map->parseHeader($data[0]);
+        $this->assertEquals(1, $this->map->index(ColumnMap::NAME));
+        $this->assertEquals('kurly', $this->map->value(ColumnMap::NAME, $data[1]));
+        $this->assertEquals('kurly', $data[1][$this->map->index(ColumnMap::NAME)]);
     }
 }

@@ -18,9 +18,10 @@
   },
   "require": {
     "box/spout": "^3.1",
+    "ext-json": "*",
     "ext-zip": "*",
     "psr/log": "^1.1",
-    "ext-json": "*"
+    "rych/random": "^0.1.0"
   },
   "require-dev": {
     "pendenga/log": "^0.1.0",

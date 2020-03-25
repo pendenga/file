@@ -8,23 +8,29 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
 /**
- * Class ColMap
+ * Class ColumnMap
  * @package Pendenga\File
  */
-class ColMap
+class ColumnMap
 {
     use LoggerAwareTrait;
 
-    const NAME = 'col_name';
-    const SIZE = 'col_size';
-    const ROWS = 'col_rows';
+    const NAME  = 'col_name';
+    const SIZE  = 'col_size';
+    const ROWS  = 'col_rows';
+    const CHECK = 'col_check';
 
     protected $col_index = [];
     protected $col_keys = [
         self::NAME,
         self::SIZE,
         self::ROWS,
+        self::CHECK,
     ];
+
+    // record of the columns found in the manifest
+    protected $col_values;
+
     /**
      * @var string
      */
@@ -35,6 +41,7 @@ class ColMap
      * @var array
      */
     protected $col_match = [
+        'name'     => self::NAME,
         'file'     => self::NAME,
         'filename' => self::NAME,
         'size'     => self::SIZE,
@@ -42,10 +49,14 @@ class ColMap
         'bytes'    => self::SIZE,
         'count'    => self::ROWS,
         'rows'     => self::ROWS,
+        'lines'    => self::ROWS,
+        'checksum' => self::CHECK,
+        'check'    => self::CHECK,
+        'md5'      => self::CHECK,
     ];
 
     /**
-     * ColMap constructor.
+     * ColumnMap constructor.
      * @param LoggerInterface|null $logger
      */
     public function __construct(LoggerInterface $logger = null)
@@ -56,7 +67,8 @@ class ColMap
     /**
      * @return array
      */
-    public function columnKeys() {
+    public function columnKeys()
+    {
         return array_keys($this->col_index);
     }
 
@@ -93,29 +105,30 @@ class ColMap
      */
     public function parseHeader(array $header)
     {
+        $this->logger->debug(__METHOD__ . ' with ', $header);
         $this->header_checksum = md5(json_encode($header));
         foreach ($header as $i => $row_value) {
-            $this->logger->debug('parsing ' . $row_value);
             if (isset($this->col_match[$row_value])) {
                 $this->col_index[$this->col_match[$row_value]] = $i;
                 $this->col_values[$i] = $row_value;
             }
         }
+        $this->logger->debug(__METHOD__ . ' parsed', $this->col_index);
+        $this->logger->debug(__METHOD__ . ' values', $this->col_values);
         if (!isset($this->col_index[self::NAME])) {
-            throw new FileException('column name not idenfied in header row');
+            throw new FileException('column name not identified in header row');
         }
-        $this->logger->debug('parsed', $this->col_index);
-        $this->logger->debug('values', $this->col_values);
     }
 
     /**
      * Get the value of the given column from the row
      * @param string $column
-     * @param array $row
+     * @param array  $row
      * @return mixed
      * @throws FileException
      */
-    public function value($column, array $row) {
+    public function value($column, array $row)
+    {
         return $row[$this->index($column)];
     }
 }

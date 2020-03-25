@@ -7,17 +7,17 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
 /**
- * Class Prop
+ * Class Properties
  * @package Pendenga\File
  */
-class Prop implements PropInterface
+class Properties implements PropertiesInterface
 {
     use LoggerAwareTrait;
 
     protected $full_file_name;
 
     /**
-     * Prop constructor.
+     * Properties constructor.
      * @param string               $full_file_name
      * @param LoggerInterface|null $logger
      */
@@ -25,6 +25,44 @@ class Prop implements PropInterface
     {
         $this->setLogger($logger ?? new NullLogger());
         $this->full_file_name = $full_file_name;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function bytes(): int
+    {
+        $this->exists();
+
+        return filesize($this->fullPath());
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function checksum(): string {
+        $this->exists();
+        return md5_file($this->fullPath());
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function exists(): bool
+    {
+        if (!file_exists($this->fullPath())) {
+            throw new FileNotFoundException('File not found: ' . $this->fullPath());
+        }
+
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function fullPath(): string
+    {
+        return $this->full_file_name;
     }
 
     /**
@@ -45,35 +83,5 @@ class Prop implements PropInterface
         fclose($handle);
 
         return $line_count;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function bytes(): int
-    {
-        $this->exists();
-
-        return filesize($this->fullPath());
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function exists(): bool
-    {
-        if (!file_exists($this->fullPath())) {
-            throw new FileNotFoundException('File not found: ' . $this->fullPath());
-        }
-
-        return true;
-    }
-
-    /**
-     * @return string
-     */
-    protected function fullPath()
-    {
-        return $this->full_file_name;
     }
 }
